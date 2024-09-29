@@ -193,6 +193,12 @@ jobs:
             chmod 775 setup_flask_kubernetes.sh
             echo "Setting Up Flask App Pod"
             ./setup_flask_kubernetes.sh  
+      
+      - name: Replace Prometheus Configs Variables
+        env:
+          MASTER_INSTANCE_PUBLIC_IP: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  # Use the fetched IP
+        run: |
+          sed -i 's/{{MASTERINSTANCEPUBLICIP}}/'"$MASTER_INSTANCE_PUBLIC_IP"'/g' pods_assets/prometheus/prometheus-config.yaml
 
       - name: Install Prometheus Application Pod
         uses: appleboy/ssh-action@v0.1.5
