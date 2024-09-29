@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r wordpress-cdk-app/requirements.txt
+          pip install -r kubernetes-cdk-app/requirements.txt
 
       - name: Install AWS CDK CLI
         run: |
