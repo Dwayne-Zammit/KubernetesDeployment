@@ -53,8 +53,8 @@ jobs:
           cdk bootstrap
           cdk deploy --all --require-approval never
       
-      - name: Sleep Before Deployment
-        run: sleep 90
+      - name: Sleep Before Proceeding With Deployment
+        run: sleep 10
 
       - name: Fetch EC2 Master Public IP
         id: fetch-ip-master
@@ -69,7 +69,7 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='MasterInstancePublicIp'].OutputValue" \
             --output text \
             --region $AWS_REGION)
-          echo "MASTER INSTANCE_PUBLIC_IP=${MASTER_INSTANCE_PUBLIC_IP}" >> $GITHUB_ENV
+          echo "MASTER_INSTANCE_PUBLIC_IP=${MASTER_INSTANCE_PUBLIC_IP}" >> $GITHUB_ENV
           echo "The fetched public IP is: ${MASTER_INSTANCE_PUBLIC_IP}"  # Echo the IP for debugging
 
       - name: Test SSH Connectivity To Master Server
@@ -91,7 +91,7 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='WorkerInstancePublicIp'].OutputValue" \
             --output text \
             --region $AWS_REGION)
-          echo "WORKER INSTANCE_PUBLIC_IP=${WORKER_INSTANCE_PUBLIC_IP}" >> $GITHUB_ENV
+          echo "WORKER_INSTANCE_PUBLIC_IP=${WORKER_INSTANCE_PUBLIC_IP}" >> $GITHUB_ENV
           echo "The fetched public IP is: ${WORKER_INSTANCE_PUBLIC_IP}"  # Echo the IP for debugging          
       
       - name: Test SSH Connectivity To Worker Server
