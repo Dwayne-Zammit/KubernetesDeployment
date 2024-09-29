@@ -16,8 +16,9 @@ sudo kubeadm init
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo systemctl restart kubelet
 
-curl https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/c.yaml -O
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml -O
 kubectl apply -f calico.yaml
 
 kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-

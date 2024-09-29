@@ -1,0 +1,157 @@
+name: Deploy CDK App Wordpress
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r wordpress-cdk-app/requirements.txt
+
+      - name: Install AWS CDK CLI
+        run: |
+          npm install -g aws-cdk
+
+      - name: Replace variables
+        env:
+          GRAFANAADMINPASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+        run: |
+          cd grafana
+          sed -i 's/{{GRAFANAADMINPASSWORD}}/'"$GRAFANAADMINPASSWORD"'/g' grafana-deployment.yaml
+          
+      - name: CDK Diff
+        env:
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd kubernetes-cdk-app
+          cdk bootstrap
+          cdk diff --all
+
+      - name: Deploy CDK Stack
+        env:
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cd kubernetes-cdk-app
+          cdk bootstrap
+          cdk deploy --all --require-approval never
+      
+      - name: Sleep Before Deployment
+        run: sleep 90
+
+      - name: Fetch EC2 Master Public IP
+        id: fetch-ip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+        run: |
+          # Fetch the public IP of the EC2 instance
+          MASTER_INSTANCE_PUBLIC_IP=$(aws cloudformation describe-stacks \
+            --stack-name WordpressCdkAppStack \
+            --query "Stacks[0].Outputs[?OutputKey=='MasterInstancePublicIp'].OutputValue" \
+            --output text \
+            --region $AWS_REGION)
+          echo "MASTER INSTANCE_PUBLIC_IP=${MASTER_INSTANCE_PUBLIC_IP}" >> $GITHUB_ENV
+          echo "The fetched public IP is: ${MASTER_INSTANCE_PUBLIC_IP}"  # Echo the IP for debugging
+
+      - name: Test SSH Connectivity To Master Server
+        run: |
+          echo "MASTER_INSTANCE_PUBLIC_IP=${{ env.MASTER_INSTANCE_PUBLIC_IP }}"
+          echo "Trying to connect to ${MASTER_INSTANCE_PUBLIC_IP}"
+          nc -zv ${MASTER_INSTANCE_PUBLIC_IP} 22 || echo "Port 22 is not open on ${MASTER_INSTANCE_PUBLIC_IP}"
+
+      - name: Fetch EC2 Worker Public IP
+        id: fetch-ip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+        run: |
+          # Fetch the public IP of the EC2 instance
+          WORKER_INSTANCE_PUBLIC_IP=$(aws cloudformation describe-stacks \
+            --stack-name WordpressCdkAppStack \
+            --query "Stacks[0].Outputs[?OutputKey=='WorkerInstancePublicIp'].OutputValue" \
+            --output text \
+            --region $AWS_REGION)
+          echo "WORKER INSTANCE_PUBLIC_IP=${WORKER_INSTANCE_PUBLIC_IP}" >> $GITHUB_ENV
+          echo "The fetched public IP is: ${WORKER_INSTANCE_PUBLIC_IP}"  # Echo the IP for debugging          
+      
+      - name: Test SSH Connectivity To Worker Server
+        run: |
+          echo "WORKER_INSTANCE_PUBLIC_IP=${{ env.WORKER_INSTANCE_PUBLIC_IP }}"
+          echo "Trying to connect to ${WORKER_INSTANCE_PUBLIC_IP}"
+          nc -zv ${WORKER_INSTANCE_PUBLIC_IP} 22 || echo "Port 22 is not open on ${WORKER_INSTANCE_PUBLIC_IP}"
+      
+      - name: Upload pods assets to master server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}       
+          source: "pods_assets"
+          target: "/home/ubuntu/pods_assets"
+
+      - name: Upload node_exporter assets to master server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "node_exporter_installation"
+          target: "/home/ubuntu/node_exporter_installation"
+      
+
+      # - name: Check WordPress Site response code
+      #   uses: appleboy/ssh-action@v0.1.5
+      #   with:
+      #     host: ${{ env.INSTANCE_PUBLIC_IP }}
+      #     username: ${{ secrets.SERVER_USER }}
+      #     key: ${{ secrets.SERVER_SSH_KEY }}
+      #     script: |
+      #       if curl -s -o /dev/null -w "%{http_code}" http://localhost | grep -q '^200$'; then
+      #           echo "Site is up and returned status 200."
+      #       else
+      #           echo "Site returned a status other than 200."
+      #           exit 1
+      #       fi
+
+      - name: Completion Script echo Master Server url
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Deployment is successful"
+            IP_ADDR=`curl -s http://whatismyip.akamai.com/`
+            echo "Kubernetes Master IP: http://${IP_ADDR}"
+
+      - name: Completion Script echo Worker Server url
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.WORKER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Deployment is successful"
+            IP_ADDR=`curl -s http://whatismyip.akamai.com/`
+            echo "Kubernetes Worker Server IP: http://${IP_ADDR}"            

@@ -21,7 +21,7 @@ spec:
             - containerPort: 3000
           env:
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: "admin123"  # Change this to a secure password
+              value: "{{GRAFANAADMINPASSWORD}}"  # Change this to a secure password
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana  # Default data directory for Grafana

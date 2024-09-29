@@ -94,7 +94,7 @@ class KubernetesWorkerStack(Stack):
 
         # Output the public IP of the instance
         CfnOutput(
-            self, "InstancePublicIp",
+            self, "WorkerInstancePublicIp",
             value=instance.instance_public_ip,
-            description="The public IP address of the EC2 instance"
+            description="The public IP address of the Worker EC2 instance"
         )

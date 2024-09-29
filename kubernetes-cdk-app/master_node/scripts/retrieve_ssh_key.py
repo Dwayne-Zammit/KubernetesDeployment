@@ -48,7 +48,7 @@ session = boto3.Session(profile_name=profile_name)
 
 
 # get logstash ssh key id
-ssh_key_id = get_cloudformation_output("kubernetes-app-keypair")
+ssh_key_id = "key-01f0ee6d57dd7b4d6"
 
 if ssh_key_id is None:
     print("Could not find kubernetes app ssh key id. Are you using the correct profile?")
