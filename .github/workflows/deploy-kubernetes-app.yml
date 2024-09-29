@@ -65,7 +65,7 @@ jobs:
         run: |
           # Fetch the public IP of the EC2 instance
           MASTER_INSTANCE_PUBLIC_IP=$(aws cloudformation describe-stacks \
-            --stack-name WordpressCdkAppStack \
+            --stack-name KubernetesMasterStack \
             --query "Stacks[0].Outputs[?OutputKey=='MasterInstancePublicIp'].OutputValue" \
             --output text \
             --region $AWS_REGION)
@@ -87,7 +87,7 @@ jobs:
         run: |
           # Fetch the public IP of the EC2 instance
           WORKER_INSTANCE_PUBLIC_IP=$(aws cloudformation describe-stacks \
-            --stack-name WordpressCdkAppStack \
+            --stack-name KubernetesWorkerStack \
             --query "Stacks[0].Outputs[?OutputKey=='WorkerInstancePublicIp'].OutputValue" \
             --output text \
             --region $AWS_REGION)
