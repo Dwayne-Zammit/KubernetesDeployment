@@ -202,7 +202,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             echo "changing permissions for prometheus application installation script"
-            cd /home/ubuntu/pods_assets/pods_assets/prometheus/
+            cd /home/ubuntu/pods_assets/pods_assets/prometheus
             chmod 775 setup_prometheus.sh
             echo "Setting Up Prometheus App Pod"
             ./setup_prometheus.sh
