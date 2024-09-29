@@ -144,11 +144,11 @@ jobs:
             # Get the join command
             JOIN_COMMAND=$(kubeadm token create --print-join-command)
             echo "Join command: ${JOIN_COMMAND}"
-      
+
             # Create a script that checks lsof and runs the join command if the port is not in use
             echo "if ! sudo lsof -i :10250 | grep LISTEN; then sudo ${JOIN_COMMAND}; else echo 'Port 10250 is already in use.'; fi" > /tmp/join_command.sh
             chmod +x /tmp/join_command.sh  # Make it executable
-      
+
       - name: Join Worker Node to Cluster
         uses: appleboy/ssh-action@v0.1.5
         with:
@@ -157,17 +157,76 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             echo "Joining the worker node to the cluster..."
-      
+
             # Create a temporary key file
             echo "${{ secrets.SERVER_SSH_KEY }}" > /tmp/private_key
             chmod 600 /tmp/private_key  # Ensure it's only readable by the user
-      
+
             # Copy the join command script to the worker node
             scp -o StrictHostKeyChecking=no -i /tmp/private_key /tmp/join_command.sh ubuntu@${{ env.WORKER_INSTANCE_PUBLIC_IP }}:/tmp/
-      
+
             # SSH to the worker node and run the join command
             ssh -o StrictHostKeyChecking=no -i /tmp/private_key ubuntu@${{ env.WORKER_INSTANCE_PUBLIC_IP }} "bash /tmp/join_command.sh"
-      
+
+      - name: Install MongoDB Pod
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "changing permissions for mongo installation script"
+            chmod 775 /home/ubuntu/pods_assets/pods_assets/mongo_deployment/setup_mongo_deployment.sh
+            echo "Setting Up Mongo Pod"
+            /home/ubuntu/pods_assets/pods_assets/mongo_deployment/setup_mongo_deployment.sh
+
+      - name: Install Flask Application Pod
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "changing permissions for flask application installation script"
+            chmod 775 /home/ubuntu/pods_assets/pods_assets/flask_app/setup_flask_kubernetes.sh
+            echo "Setting Up Flask App Pod"
+            /home/ubuntu/pods_assets/pods_assets/flask_app/setup_flask_kubernetes.sh  
+
+      - name: Install Prometheus Application Pod
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "changing permissions for prometheus application installation script"
+            chmod 775 /home/ubuntu/pods_assets/pods_assets/prometheus/setup_prometheus.sh
+            echo "Setting Up Prometheus App Pod"
+            /home/ubuntu/pods_assets/pods_assets/prometheus/setup_prometheus.sh
+       
+      - name: Install Grafana Application Pod
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "changing permissions for grafana application installation script"
+            chmod 775 /home/ubuntu/pods_assets/pods_assets/grafana/setup_grafana.sh
+            echo "Setting Up Grafana App Pod"
+            /home/ubuntu/pods_assets/pods_assets/grafana/setup_grafana.sh 
+
+      - name: Install Node Exporter on Machine
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "changing permissions for node exporter installation script"
+            chmod 775 /home/ubuntu/node_exporter_installation/node_exporter_installation/install_node_exporter.sh
+            echo "Setting Up Node Exporter As A Service"
+            /home/ubuntu/node_exporter_installation/node_exporter_installation/install_node_exporter.sh
 
       - name: Completion Script echo Master Server url
         uses: appleboy/ssh-action@v0.1.5
