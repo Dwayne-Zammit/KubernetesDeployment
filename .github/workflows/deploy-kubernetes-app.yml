@@ -58,7 +58,7 @@ jobs:
         run: sleep 90
 
       - name: Fetch EC2 Master Public IP
-        id: fetch-ip
+        id: fetch-ip-master
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -80,7 +80,7 @@ jobs:
           nc -zv ${MASTER_INSTANCE_PUBLIC_IP} 22 || echo "Port 22 is not open on ${MASTER_INSTANCE_PUBLIC_IP}"
 
       - name: Fetch EC2 Worker Public IP
-        id: fetch-ip
+        id: fetch-ip-worker
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
