@@ -142,7 +142,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             # Get the join command
-            JOIN_COMMAND=$(kubeadm token create --print-join-command)
+            JOIN_COMMAND=$(sudo kubeadm token create --print-join-command)
             echo "Join command: ${JOIN_COMMAND}"
 
             # Create a script that checks lsof and runs the join command if the port is not in use
