@@ -195,10 +195,13 @@ jobs:
             sudo ./setup_flask_kubernetes.sh  
       
       - name: Replace Prometheus Configs Variables
-        env:
-          MASTER_INSTANCE_PUBLIC_IP: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  # Use the fetched IP
-        run: |
-          sed -i 's/{{MASTERINSTANCEPUBLICIP}}/'"$MASTER_INSTANCE_PUBLIC_IP"'/g' pods_assets/prometheus/prometheus-config.yaml
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sed -i 's/{{MASTERINSTANCEPUBLICIP}}/'"${{ env.MASTER_INSTANCE_PUBLIC_IP }}"'/g' pods_assets/pods_assets/prometheus/prometheus-config.yaml
 
       - name: Install Prometheus Application Pod
         uses: appleboy/ssh-action@v0.1.5
