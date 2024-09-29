@@ -1,6 +1,6 @@
-echo "worker node"
+echo "master node"
 sudo apt update -y && sudo apt install docker.io -y
-sudo hostnamectl set-hostname workernode1
+sudo hostnamectl set-hostname controlplane
 bash
 sudo apt-get update
 # apt-transport-https may be a dummy package; if so, you can skip that package
@@ -12,3 +12,12 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
+sudo kubeadm init
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/c.yaml -O
+kubectl apply -f calico.yaml
+
+kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
