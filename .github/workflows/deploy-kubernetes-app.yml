@@ -146,7 +146,7 @@ jobs:
             echo "Join command: ${JOIN_COMMAND}"
 
             # Store the command in a file on the master server
-            echo "${JOIN_COMMAND}" > /tmp/join_command.sh
+            echo "sudo ${JOIN_COMMAND}" > /tmp/join_command.sh
             chmod +x /tmp/join_command.sh  # Make it executable
 
       - name: Join Worker Node to Cluster
