@@ -31,8 +31,9 @@ jobs:
         env:
           GRAFANAADMINPASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
         run: |
-          cd grafana
-          sed -i 's/{{GRAFANAADMINPASSWORD}}/'"$GRAFANAADMINPASSWORD"'/g' grafana-deployment.yaml
+          pwd
+          ls
+          sed -i 's/{{GRAFANAADMINPASSWORD}}/'"$GRAFANAADMINPASSWORD"'/g' kubernetes-cdk-app/grafana/grafana-deployment.yaml
           
       - name: CDK Diff
         env:
