@@ -145,32 +145,11 @@ jobs:
             JOIN_COMMAND=$(kubeadm token create --print-join-command)
             echo "Join command: ${JOIN_COMMAND}"
       
-            # Store the command in a file on the master server
-            echo "sudo ${JOIN_COMMAND}" > /tmp/join_command.sh
+            # Create a script that checks lsof and runs the join command if the port is not in use
+            echo "if ! sudo lsof -i :10250 | grep LISTEN; then sudo ${JOIN_COMMAND}; else echo 'Port 10250 is already in use.'; fi" > /tmp/join_command.sh
             chmod +x /tmp/join_command.sh  # Make it executable
       
-      - name: Check Worker Node Registration
-        id: check_worker_registration
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  # Connect to master first
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            WORKER_IP=${{ env.WORKER_INSTANCE_PUBLIC_IP }}
-            echo "Checking if the worker node is already registered..."
-      
-            # Check if the worker node is listed
-            if kubectl get nodes | grep $WORKER_IP; then
-              echo "Node $WORKER_IP is already registered."
-              exit 0  # Exit with status 0, indicating success without action
-            else
-              echo "Node $WORKER_IP is not registered. Proceeding with join command."
-              exit 1  # Exit with a non-zero status to continue to the join step
-            fi
-      
       - name: Join Worker Node to Cluster
-        if: steps.check_worker_registration.outcome == 'failure'  # Only run if the previous step failed (node not registered)
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  # Connect to master first
@@ -188,6 +167,7 @@ jobs:
       
             # SSH to the worker node and run the join command
             ssh -o StrictHostKeyChecking=no -i /tmp/private_key ubuntu@${{ env.WORKER_INSTANCE_PUBLIC_IP }} "bash /tmp/join_command.sh"
+      
 
       - name: Completion Script echo Master Server url
         uses: appleboy/ssh-action@v0.1.5
