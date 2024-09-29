@@ -132,7 +132,7 @@ jobs:
       #           echo "Site returned a status other than 200."
       #           exit 1
       #       fi
-      - name: Get Worker Join Command from Master Node
+      - name: Get Join Command from Master Node
         id: get_join_command
         uses: appleboy/ssh-action@v0.1.5
         with:
@@ -140,11 +140,14 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # Get the join command
-            JOIN_COMMAND=$(kubeadm token create --print-join-command)
-            echo "Kubeadm Join Command: ${JOIN_COMMAND}"
-            # Set the GitHub Actions environment variable directly
-            echo "JOIN_COMMAND=${JOIN_COMMAND}" >> $GITHUB_ENV
+            # Get the join command and echo it
+            kubeadm token create --print-join-command
+
+      - name: Capture Join Command
+        id: capture_join_command
+        run: |
+          JOIN_COMMAND=$(echo "${{ steps.get_join_command.outputs.stdout }}")
+          echo "JOIN_COMMAND=${JOIN_COMMAND}" >> $GITHUB_ENV
 
       - name: Join Worker Node to Cluster
         uses: appleboy/ssh-action@v0.1.5
