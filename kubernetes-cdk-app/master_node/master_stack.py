@@ -82,7 +82,7 @@ class KubernetesMasterStack(Stack):
             role=role,
             block_devices=[
                    ec2.BlockDevice(
-                       device_name="/dev/xvda",
+                       device_name="/dev/sda1",
                        volume=ec2.BlockDeviceVolume.ebs(
                            volume_size=8,
                            volume_type=ec2.EbsDeviceVolumeType.GP3, 
