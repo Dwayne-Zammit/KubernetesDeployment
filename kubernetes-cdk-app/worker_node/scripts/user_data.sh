@@ -1,7 +1,6 @@
 echo "worker node"
 sudo apt update -y && sudo apt install docker.io -y
 sudo hostnamectl set-hostname workernode1
-bash
 sudo apt-get update
 # apt-transport-https may be a dummy package; if so, you can skip that package
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
@@ -12,3 +11,4 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable --now kubelet
+bash
