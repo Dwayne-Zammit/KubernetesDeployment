@@ -156,7 +156,8 @@ jobs:
           script: |
             echo "Joining the worker node to the cluster..."
             # Run the join command that was retrieved from the master node
-            eval "${{ env.JOIN_COMMAND }}"
+            $JOIN_COMMAND
+
 
       - name: Completion Script echo Master Server url
         uses: appleboy/ssh-action@v0.1.5
