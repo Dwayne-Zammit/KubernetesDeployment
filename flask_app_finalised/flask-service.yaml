@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+spec:
+  type: NodePort
+  ports:
+    - port: 5000 # The port that will be exposed
+      targetPort: 5000 # The port your Flask app is listening on
+      nodePort: 32138 # Optional: Specify a nodePort, or let Kubernetes assign one
+  selector:
+    app: flask # Ensure this matches the label in your Flask deployment
