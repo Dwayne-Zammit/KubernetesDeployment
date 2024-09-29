@@ -152,14 +152,19 @@ jobs:
       - name: Join Worker Node to Cluster
         uses: appleboy/ssh-action@v0.1.5
         with:
-          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}  # Connect to master first
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             echo "Joining the worker node to the cluster..."
+            # Create a temporary key file
+            echo "${{ secrets.SERVER_SSH_KEY }}" > /tmp/private_key
+            chmod 600 /tmp/private_key  # Ensure it's only readable by the user
+      
             # SSH to the worker node and run the join command from the master server
-            ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ env.WORKER_INSTANCE_PUBLIC_IP }} "bash /tmp/join_command.sh"
-
+            ssh -o StrictHostKeyChecking=no -i /tmp/private_key ${{ secrets.SERVER_USER }}@${{ env.WORKER_INSTANCE_PUBLIC_IP }} "bash /tmp/join_command.sh"
+      
+      
       - name: Completion Script echo Master Server url
         uses: appleboy/ssh-action@v0.1.5
         with:
