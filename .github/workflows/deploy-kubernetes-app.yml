@@ -133,6 +133,31 @@ jobs:
       #           exit 1
       #       fi
 
+      - name: Get Join Command from Master Node
+        uses: appleboy/ssh-action@v0.1.5
+        id: get_join_command
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Get the join command
+            JOIN_COMMAND=$(kubeadm token create --print-join-command)
+            echo "Kubeadm Join Command: ${JOIN_COMMAND}"
+            # Set the GitHub Actions environment variable
+            echo "JOIN_COMMAND=${JOIN_COMMAND}" >> $GITHUB_ENV
+
+      - name: Join Worker Node to Cluster
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.WORKER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Joining the worker node to the cluster..."
+            # Run the join command that was retrieved from the master node
+            eval "${{ env.JOIN_COMMAND }}"
+
       - name: Completion Script echo Master Server url
         uses: appleboy/ssh-action@v0.1.5
         with:
