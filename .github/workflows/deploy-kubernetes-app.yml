@@ -179,7 +179,7 @@ jobs:
             cd /home/ubuntu/pods_assets/pods_assets/mongo_deployment
             chmod 775 setup_mongo_deployment.sh
             echo "Setting Up Mongo Pod"
-            sudo ./setup_mongo_deployment.sh
+            ./setup_mongo_deployment.sh
 
       - name: Install Flask Application Pod
         uses: appleboy/ssh-action@v0.1.5
@@ -192,7 +192,7 @@ jobs:
             cd /home/ubuntu/pods_assets/pods_assets/flask_app
             chmod 775 setup_flask_kubernetes.sh
             echo "Setting Up Flask App Pod"
-            sudo ./setup_flask_kubernetes.sh  
+            ./setup_flask_kubernetes.sh  
       
       - name: Replace Prometheus Configs Variables
         uses: appleboy/ssh-action@v0.1.5
@@ -214,7 +214,7 @@ jobs:
             cd /home/ubuntu/pods_assets/pods_assets/prometheus
             chmod 775 setup_prometheus.sh
             echo "Setting Up Prometheus App Pod"
-            sudo ./setup_prometheus.sh
+            ./setup_prometheus.sh
        
       - name: Install Grafana Application Pod
         uses: appleboy/ssh-action@v0.1.5
@@ -227,7 +227,7 @@ jobs:
             cd /home/ubuntu/pods_assets/pods_assets/grafana
             chmod 775 setup_grafana.sh
             echo "Setting Up Grafana App Pod"
-            sudo ./setup_grafana.sh
+            ./setup_grafana.sh
 
       - name: Install Node Exporter on Machine
         uses: appleboy/ssh-action@v0.1.5
