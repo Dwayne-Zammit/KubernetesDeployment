@@ -143,10 +143,10 @@ jobs:
           script: |
             # Get the join command
             JOIN_COMMAND=$(sudo kubeadm token create --print-join-command)
-            echo "Join command: ${JOIN_COMMAND}"
+            echo "Join command: $JOIN_COMMAND"
 
             # Create a script that checks lsof and runs the join command if the port is not in use
-            echo "if ! sudo lsof -i :10250 | grep LISTEN; then sudo ${JOIN_COMMAND}; else echo 'Port 10250 is already in use.'; fi" > /tmp/join_command.sh
+            echo "if ! sudo lsof -i :10250 | grep LISTEN; then sudo $JOIN_COMMAND; else echo 'Port 10250 is already in use.'; fi" > /tmp/join_command.sh
             chmod +x /tmp/join_command.sh  # Make it executable
 
       - name: Join Worker Node to Cluster
