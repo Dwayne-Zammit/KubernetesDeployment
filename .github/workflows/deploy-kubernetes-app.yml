@@ -54,7 +54,7 @@ jobs:
           cdk deploy --all --require-approval never
       
       - name: Sleep Before Proceeding With Deployment
-        run: sleep 10
+        run: sleep 60
 
       - name: Fetch EC2 Master Public IP
         id: fetch-ip-master

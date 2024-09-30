@@ -1,5 +1,8 @@
 echo "master node"
 sudo apt update -y && sudo apt install docker.io -y
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo docker --version
 sudo hostnamectl set-hostname controlplane
 
 sudo apt-get update
@@ -17,6 +20,9 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo systemctl restart kubelet
+# Reapply kube-proxy addon
+sudo kubeadm init phase addon kube-proxy
+kubectl get daemonset kube-proxy -n kube-system
 curl -o /home/ubuntu/calico.yaml https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml
 kubectl apply -f /home/ubuntu/calico.yaml
 kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
