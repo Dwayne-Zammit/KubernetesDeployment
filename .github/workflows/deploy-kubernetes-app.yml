@@ -23,9 +23,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r kubernetes-cdk-app/requirements.txt
 
-      - name: Install AWS CDK CLI
+      - name: Install AWS CDK
         run: |
           npm install -g aws-cdk
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
 
       - name: Replace variables
         env:
@@ -52,9 +57,25 @@ jobs:
           cd kubernetes-cdk-app
           cdk bootstrap
           cdk deploy --all --require-approval never
-      
-      - name: Sleep Before Proceeding With Deployment
-        run: sleep 60
+
+      - name: Wait for Master Node to be initialized
+        id: wait-for-master-to-be-initialized
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+        run: |
+          # Fetch the public IP of the EC2 instance
+          MASTER_INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name KubernetesMasterStack \
+            --query "Stacks[0].Outputs[?OutputKey=='MasterInstanceId'].OutputValue" \
+            --output text \
+            --region $AWS_REGION)
+          echo "MASTER_INSTANCE_ID=${MASTER_INSTANCE_ID}" >> $GITHUB_ENV
+          echo "The fetched master instance Id is: ${MASTER_INSTANCE_ID}"  # Echo the id for debugging
+          
+          aws ec2 wait instance-status-ok --instance-ids $MASTER_INSTANCE_ID
+
 
       - name: Fetch EC2 Master Public IP
         id: fetch-ip-master

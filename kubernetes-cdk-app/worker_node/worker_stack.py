@@ -98,3 +98,8 @@ class KubernetesWorkerStack(Stack):
             value=instance.instance_public_ip,
             description="The public IP address of the Worker EC2 instance"
         )
+        CfnOutput(
+            self, "WorkerInstanceId",
+            value=instance.instance_id,
+            description="The Instance Id of the Worker EC2 instance"
+        )

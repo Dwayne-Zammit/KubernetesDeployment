@@ -98,3 +98,8 @@ class KubernetesMasterStack(Stack):
             value=instance.instance_public_ip,
             description="The public IP address of the Master EC2 instance"
         )
+        CfnOutput(
+            self, "MasterInstanceId",
+            value=instance.instance_id,
+            description="The Instance Id of the Master EC2 instance"
+        )
