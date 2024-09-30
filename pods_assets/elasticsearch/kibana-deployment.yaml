@@ -1,4 +1,25 @@
-# kibana-deployment.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kibana-service
+  namespace: elk
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: elk
+  name: kibana-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["prometheuses", "prometheusrules"]
+    verbs: ["get", "list", "watch"]
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,18 +35,26 @@ spec:
       labels:
         app: kibana
     spec:
+      serviceAccountName: kibana-service
       containers:
         - name: kibana
           image: docker.elastic.co/kibana/kibana:8.4.2
           env:
             - name: ELASTICSEARCH_HOSTS
               value: http://elasticsearch:9200
-            - name: ELASTICSEARCH_USERNAME
-              value: elastic
-            - name: ELASTICSEARCH_PASSWORD
-              value: changeme # Change this to the same password used in Elasticsearch
+            - name: KIBANA_HOST
+              value: "0.0.0.0"  # Listen on all interfaces
           ports:
             - containerPort: 5601
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+              ephemeral-storage: "1Gi"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+              ephemeral-storage: "2Gi"
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +66,6 @@ spec:
   ports:
     - port: 5601
       targetPort: 5601
-      nodePort: 30001 # Change this if needed
+      nodePort: 30001  # Change this if needed
   selector:
     app: kibana

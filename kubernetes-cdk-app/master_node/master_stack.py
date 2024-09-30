@@ -70,7 +70,7 @@ class KubernetesMasterStack(Stack):
             self, "KubMasterEC2Instance",
             instance_type=ec2.InstanceType("t2.medium"),
             machine_image=ec2.MachineImage.generic_linux({
-                "eu-west-1": "ami-03cc8375791cb8bcf"
+                "eu-west-1": "ami-0a422d70f727fe93e"
             }),
             vpc=vpc,
             security_group=security_group,
