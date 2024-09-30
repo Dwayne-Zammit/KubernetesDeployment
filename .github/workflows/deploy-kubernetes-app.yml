@@ -72,10 +72,8 @@ jobs:
             --output text \
             --region $AWS_REGION)
           echo "MASTER_INSTANCE_ID=${MASTER_INSTANCE_ID}" >> $GITHUB_ENV
-          echo "The fetched master instance Id is: ${MASTER_INSTANCE_ID}"  # Echo the id for debugging
-          
+          echo "The fetched master instance Id is: ${MASTER_INSTANCE_ID}"  # Echo the id for debugging          
           aws ec2 wait instance-status-ok --instance-ids $MASTER_INSTANCE_ID
-
 
       - name: Fetch EC2 Master Public IP
         id: fetch-ip-master
@@ -138,7 +136,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           source: "node_exporter_installation"
           target: "/home/ubuntu/node_exporter_installation"
-      
 
       # - name: Check WordPress Site response code
       #   uses: appleboy/ssh-action@v0.1.5
@@ -178,7 +175,6 @@ jobs:
             # Get the join command
             JOIN_COMMAND=$(sudo kubeadm token create --print-join-command)
             echo "Join command: $JOIN_COMMAND"
-
             # Create a script that checks lsof and runs the join command if the port is not in use
             echo "if ! sudo lsof -i :10250 | grep LISTEN; then sudo $JOIN_COMMAND; else echo 'Port 10250 is already in use.'; fi" > /tmp/join_command.sh
             chmod +x /tmp/join_command.sh  # Make it executable
@@ -191,14 +187,11 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             echo "Joining the worker node to the cluster..."
-
             # Create a temporary key file
             echo "${{ secrets.SERVER_SSH_KEY }}" > /tmp/private_key
             chmod 600 /tmp/private_key  # Ensure it's only readable by the user
-
             # Copy the join command script to the worker node
             scp -o StrictHostKeyChecking=no -i /tmp/private_key /tmp/join_command.sh ubuntu@${{ env.WORKER_INSTANCE_PUBLIC_IP }}:/tmp/
-
             # SSH to the worker node and run the join command
             ssh -o StrictHostKeyChecking=no -i /tmp/private_key ubuntu@${{ env.WORKER_INSTANCE_PUBLIC_IP }} "bash /tmp/join_command.sh"
             sleep 10
@@ -309,4 +302,4 @@ jobs:
           script: |
             echo "Deployment is successful"
             IP_ADDR=`curl -s http://whatismyip.akamai.com/`
-            echo "Kubernetes Worker Server IP: http://${IP_ADDR}"            
+            echo "Kubernetes Worker Server IP: http://${IP_ADDR}"
