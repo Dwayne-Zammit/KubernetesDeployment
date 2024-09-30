@@ -28,4 +28,4 @@ curl -o /home/ubuntu/calico.yaml https://raw.githubusercontent.com/projectcalico
 sudo chmod 777 /home/ubuntu/calico.yaml
 kubectl apply -f /home/ubuntu/calico.yaml
 kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
-# bash
+bash
