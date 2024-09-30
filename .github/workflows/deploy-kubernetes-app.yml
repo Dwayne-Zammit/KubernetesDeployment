@@ -133,6 +133,19 @@ jobs:
       #           exit 1
       #       fi
 
+      - name: Continue bootrstrapping master node
+        id: get_join_command
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            mkdir -p $HOME/.kube
+            sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+            sleep 10
+
       - name: Get Join Command and Token from Master Node
         id: get_join_command
         uses: appleboy/ssh-action@v0.1.5
@@ -167,6 +180,7 @@ jobs:
 
             # SSH to the worker node and run the join command
             ssh -o StrictHostKeyChecking=no -i /tmp/private_key ubuntu@${{ env.WORKER_INSTANCE_PUBLIC_IP }} "bash /tmp/join_command.sh"
+            sleep 10
 
       - name: Install MongoDB Pod
         uses: appleboy/ssh-action@v0.1.5
