@@ -6,6 +6,7 @@ sudo docker --version
 sudo hostnamectl set-hostname controlplane
 
 sudo apt-get update
+sudo apt install socat
 # apt-transport-https may be a dummy package; if so, you can skip that package
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 sudo mkdir -p -m 755 /etc/apt/keyrings
@@ -24,6 +25,7 @@ sudo systemctl restart kubelet
 sudo kubeadm init phase addon kube-proxy
 kubectl get daemonset kube-proxy -n kube-system
 curl -o /home/ubuntu/calico.yaml https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml
+sudo chmod 777 /home/ubuntu/calico.yaml
 kubectl apply -f /home/ubuntu/calico.yaml
 kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
 bash
