@@ -229,6 +229,19 @@ jobs:
             echo "Setting Up Grafana App Pod"
             ./setup_grafana.sh
 
+      - name: Install Elasticsearch Application Pod
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "changing permissions for grafana application installation script"
+            cd /home/ubuntu/pods_assets/pods_assets/elasticsearch
+            chmod 775 setup_elasticsearch.sh
+            echo "Setting Up Elasticsearch App Pod"
+            ./setup_elasticsearch.sh
+
       - name: Install Node Exporter on Machine
         uses: appleboy/ssh-action@v0.1.5
         with:

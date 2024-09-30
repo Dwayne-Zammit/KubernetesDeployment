@@ -1,0 +1,42 @@
+# kibana-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: elk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.4.2
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: http://elasticsearch:9200
+            - name: ELASTICSEARCH_USERNAME
+              value: elastic
+            - name: ELASTICSEARCH_PASSWORD
+              value: changeme # Change this to the same password used in Elasticsearch
+          ports:
+            - containerPort: 5601
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: elk
+spec:
+  type: NodePort
+  ports:
+    - port: 5601
+      targetPort: 5601
+      nodePort: 30001 # Change this if needed
+  selector:
+    app: kibana
