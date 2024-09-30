@@ -68,7 +68,7 @@ class KubernetesWorkerStack(Stack):
         # Attach the role to the EC2 instance
         instance = ec2.Instance(
             self, "KubWorkerEC2Instance",
-            instance_type=ec2.InstanceType("t2.medium"),
+            instance_type=ec2.InstanceType("t3.large"),
             machine_image=ec2.MachineImage.generic_linux({
                 "eu-west-1": "ami-03cc8375791cb8bcf"
             }),
@@ -84,7 +84,7 @@ class KubernetesWorkerStack(Stack):
                    ec2.BlockDevice(
                        device_name="/dev/sda1",
                        volume=ec2.BlockDeviceVolume.ebs(
-                           volume_size=22,
+                           volume_size=20,
                            volume_type=ec2.EbsDeviceVolumeType.GP3, 
                            delete_on_termination=True
                        )
