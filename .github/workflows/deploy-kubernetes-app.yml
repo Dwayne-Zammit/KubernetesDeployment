@@ -74,6 +74,25 @@ jobs:
           echo "MASTER_INSTANCE_ID=${MASTER_INSTANCE_ID}" >> $GITHUB_ENV
           echo "The fetched master instance Id is: ${MASTER_INSTANCE_ID}"  # Echo the id for debugging          
           aws ec2 wait instance-status-ok --instance-ids $MASTER_INSTANCE_ID
+          echo "Master instance initialised..."
+
+        - name: Wait for Worker Node to be initialized
+        id: wait-for-worker-to-be-initialized
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-west-1
+        run: |
+          # Fetch the public IP of the EC2 instance
+          WORKER_INSTANCE_ID=$(aws cloudformation describe-stacks \
+            --stack-name KubernetesWorkerStack \
+            --query "Stacks[0].Outputs[?OutputKey=='MasterInstanceId'].OutputValue" \
+            --output text \
+            --region $AWS_REGION)
+          echo "WORKER_INSTANCE_ID=${WORKER_INSTANCE_ID}" >> $GITHUB_ENV
+          echo "The fetched master instance Id is: ${WORKER_INSTANCE_ID}"  # Echo the id for debugging          
+          aws ec2 wait instance-status-ok --instance-ids $WORKER_INSTANCE_ID
+          echo "Worker instance initialised..."
 
       - name: Fetch EC2 Master Public IP
         id: fetch-ip-master
@@ -163,6 +182,7 @@ jobs:
             sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
             sudo chown $(id -u):$(id -g) $HOME/.kube/config
             sleep 10
+            kubectl apply -f /home/ubuntu/calico.yaml
 
       - name: Get Join Command and Token from Master Node
         id: get_join_command
