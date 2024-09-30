@@ -134,7 +134,7 @@ jobs:
       #       fi
 
       - name: Continue bootrstrapping master node
-        id: get_join_command
+        id: continue_bootstrapping_master
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ env.MASTER_INSTANCE_PUBLIC_IP }}
